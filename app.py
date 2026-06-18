@@ -337,8 +337,9 @@ def settings():
 # STARTUP
 # ──────────────────────────────────────────────
 
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     # Start background polling thread
     poller = threading.Thread(target=poll_live_stats, daemon=True)
     poller.start()
