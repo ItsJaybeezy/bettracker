@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PropTracker — Settings</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root {
+    --bg: #0d0f14; --surface: #161920; --surface2: #1e2230;
+    --border: #2a2f3d; --text: #e8eaf0; --muted: #6b7280;
+    --accent: #6366f1; --accent-glow: rgba(99,102,241,0.15);
+    --green: #22c55e; --red: #ef4444; --yellow: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 18px; color: var(--accent); }
+  .nav-logo span { color: var(--text); }
+  a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  a:hover { color: var(--text); }
+  main { padding: 40px 32px; max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .subtitle { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
+  .panel-header { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+  .panel-header h2 { font-size: 15px; font-weight: 600; }
+  .panel-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .panel-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .env-row { display: flex; flex-direction: column; gap: 6px; }
+  .env-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.set { background: var(--green); }
+  .dot.unset { background: var(--red); }
+  .env-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--muted); }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .step-num { background: var(--accent); color: #fff; font-weight: 700; font-size: 12px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-body h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .step-body p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  code { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); }
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; background: var(--accent); color: #fff; }
+  .btn:hover { background: #4f46e5; }
+  .badge-set { display: inline-block; background: rgba(34,197,94,0.15); color: var(--green); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+  .badge-unset { display: inline-block; background: rgba(239,68,68,0.1); color: var(--red); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">prop<span>tracker</span></div>
+  <a href="/">← Back to Dashboard</a>
+</nav>
+
+<main>
+  <h1>⚙️ Settings</h1>
+  <p class="subtitle">Configure your Discord webhook and API keys via environment variables.</p>
+
+  <!-- STATUS -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Connection Status</h2>
+      <p>Set these as environment variables on your server.</p>
+    </div>
+    <div class="panel-body">
+      <div class="env-row">
+        <div class="env-label">
+          <div class="dot {{ 'set' if discord_set else 'unset' }}"></div>
+          DISCORD_WEBHOOK_URL
+          {% if discord_set %}<span class="badge-set">Connected</span>{% else %}<span class="badge-unset">Not Set</span>{% endif %}
+        </div>
+        <div class="env-val">{% if discord_set %}https://discord.com/api/webhooks/***{% else %}Not configured{% endif %}</div>
+      </div>
+      <div class="env-row">
+        <div class="env-label">
+          <div class="dot {{ 'set' if sportradar_set else 'unset' }}"></div>
+          SPORTRADAR_API_KEY
+          {% if sportradar_set %}<span class="badge-set">Connected</span>{% else %}<span class="badge-unset">Not Set — Manual mode active</span>{% endif %}
+        </div>
+        <div class="env-val">{% if sportradar_set %}***{% else %}Not set — update stats manually from the dashboard{% endif %}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCORD SETUP -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Discord Webhook Setup</h2>
+      <p>Get alerts in any Discord channel whenever a stat updates.</p>
+    </div>
+    <div class="panel-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Open Discord channel settings</h3>
+          <p>Go to the channel you want alerts in → Settings → Integrations → Webhooks → New Webhook.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Copy the webhook URL</h3>
+          <p>Click "Copy Webhook URL" — it looks like <code>https://discord.com/api/webhooks/123.../abc...</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Set environment variable</h3>
+          <p>On Railway: go to your project → Variables → add <code>DISCORD_WEBHOOK_URL</code> with the URL as the value. Redeploy.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPORTRADAR SETUP -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Sportradar API (Optional — for automatic live stats)</h2>
+      <p>Without this, you update stats manually from the dashboard. With it, stats poll automatically every 60s.</p>
+    </div>
+    <div class="panel-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Sign up at developer.sportradar.com</h3>
+          <p>Free trial keys are available for NBA, NFL, MLB, NHL. Each sport has its own key.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Add your key</h3>
+          <p>Set <code>SPORTRADAR_API_KEY</code> in your Railway environment variables. The poller will start automatically on next deploy.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Manual mode works great too</h3>
+          <p>You can always update a player's current stat from the dashboard yourself — the Discord alert fires instantly when you hit Update.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAILWAY DEPLOY -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Deploy to Railway (Free)</h2>
+      <p>Get this running in the cloud in ~5 minutes.</p>
+    </div>
+    <div class="panel-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Push to GitHub</h3>
+          <p>Create a new GitHub repo and push this project folder to it.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Create Railway project</h3>
+          <p>Go to railway.app → New Project → Deploy from GitHub → select your repo. Railway auto-detects Python.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Add environment variables</h3>
+          <p>In Railway → Variables, add <code>DISCORD_WEBHOOK_URL</code> and optionally <code>SPORTRADAR_API_KEY</code>. Redeploy.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Get your public URL</h3>
+          <p>Railway gives you a <code>yourapp.railway.app</code> URL. Open it, add your bets, and Discord alerts start flowing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>
